@@ -3,10 +3,11 @@
 import os
 import logging
 import requests
-from typing import Annotated
+from typing import Annotated, Any, Dict
 from fastapi import Depends, FastAPI, HTTPException, Query
 
-from app.schema import Audio, Image, Message, Payload, RoleType, User
+from src.modules.channels.meta.dtos.inbound import Audio, Image, Message, Payload, RoleType, User
+from src.modules.channels.meta.services import meta_service
 
 IS_DEV_ENVIRONMENT = True
 
@@ -131,11 +132,14 @@ def verify_whatsapp(
 
 @app.post("/webhook", status_code=200)
 def receive_whatsapp(
+        data: Dict[Any, Any],
         user: Annotated[User, Depends(get_current_user)],
         user_message: Annotated[str, Depends(message_extractor)],
         image: Annotated[Image, Depends(parse_image_file)],
 ):
-    user = User(id=1, phone="5511991490733", first_name="lennon", last_name="bahia", role=RoleType.BASIC)
+    payload = Payload(**data)
+
+    # user = User(id=1, phone="5511991490733", first_name="lennon", last_name="bahia", role=RoleType.BASIC)
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -144,5 +148,7 @@ def receive_whatsapp(
 
     if user_message:
         print(f"Received message from user {user.first_name} {user.last_name} ({user.phone})")
+        meta_service.send_message("1", payload.entry[0].changes[0].value.from_, user.phone, user_message)
 
     return {"status": "ok"}
+

@@ -6,6 +6,34 @@ Handles environment variables and application settings.
 from pydantic import Field, field_validator, model_validator, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
+class APISettings(BaseSettings):
+    """API server settings."""
+
+    host: str = Field(default="0.0.0.0", description="API host")
+    port: int = Field(default=8000, description="API port")
+    debug: bool = Field(default=False, description="Debug mode")
+    environment: str = Field(
+        default="development",
+        description="Environment (development, staging, production)",
+    )
+    use_fake_sender: bool = Field(
+        default=False, description="Use fake sender in development environment"
+    )
+    bypass_subscription_check: bool = Field(
+        default=False,
+        description="Bypass subscription validation (Development only)",
+    )
+
+    model_config = SettingsConfigDict(
+        env_prefix="API_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+
+
 class SupabaseSettings(BaseSettings):
     """Supabase connection settings."""
 
@@ -52,6 +80,7 @@ class MetaSettings(BaseSettings):
 class Settings(BaseSettings):
     """Main application settings."""
     
+    api: APISettings = Field(default_factory=APISettings)
     supabase: SupabaseSettings = Field(default_factory=SupabaseSettings)
     meta: MetaSettings = Field(default_factory=MetaSettings)
 
