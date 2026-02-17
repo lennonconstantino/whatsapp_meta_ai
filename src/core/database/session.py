@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from supabase import Client, ClientOptions, create_client
 
-from src.core.config import settings
+from src.core.config.settings import settings
 from src.core.database.interface import IDatabaseSession
 
 logger = logging.getLogger(__name__)

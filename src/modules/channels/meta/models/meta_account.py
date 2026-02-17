@@ -31,25 +31,5 @@ class MetaAccount(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
-    @field_validator("owner_id")
-    @classmethod
-    def validate_owner_id(cls, v):
-        """Validate ULID format for owner_id."""
-        if not v:
-            raise ValueError("owner_id is required")
-        if not is_valid_ulid(v):
-            raise ValueError(f"Invalid ULID format for owner_id: {v}")
-        return v.upper()
-
-    @field_validator("owner_id")
-    @classmethod
-    def validate_owner_id(cls, v):
-        """Validate ULID format for owner_id."""
-        if not v:
-            raise ValueError("owner_id is required")
-        if not is_valid_ulid(v):
-            raise ValueError(f"Invalid ULID format for owner_id: {v}")
-        return v.upper()
-
     def __repr__(self) -> str:
-        return f"MetaAccount(id={self.id}, meta_business_account_id={self.meta_business_account_id}, phone_number_id={self.phone_number_id}, meta_phone_number={self.meta_phone_number}, system_user_access_token={self.system_user_access_token}, webhook_verification_token={self.webhook_verification_token})"
+        return f"MetaAccount(id={self.id}, meta_business_account_id={self.meta_business_account_id}, phone_number_id={self.phone_number_id}, phone_number={self.phone_number}, system_user_access_token={self.system_user_access_token}, webhook_verification_token={self.webhook_verification_token})"

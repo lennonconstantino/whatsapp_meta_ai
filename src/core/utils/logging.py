@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 import structlog
 
-from src.core.config import settings
+from src.core.config.settings import settings
 
 import os
 import colorama
@@ -212,7 +212,7 @@ def configure_logging():
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, settings.log.level.upper()),
+        level=getattr(logging, ("DEBUG" if settings.api.debug else "INFO")),
     )
     
     _configured = True

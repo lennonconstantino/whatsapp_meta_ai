@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from src.core.config import settings
+from src.core.config.settings import settings
 from src.core.database.session import DatabaseConnection
 
 
@@ -17,4 +17,3 @@ class CoreContainer(containers.DeclarativeContainer):
     supabase_session = providers.Singleton(lambda db: db.session, supabase_connection)
 
     supabase_client = providers.Singleton(lambda db: db.client, supabase_connection)
-

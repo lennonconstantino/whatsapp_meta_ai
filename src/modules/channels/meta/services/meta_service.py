@@ -2,7 +2,7 @@
 import datetime
 from typing import Any, Dict, Optional
 
-from src.core.config import settings
+from src.core.config.settings import settings
 from src.core.utils.logging import get_logger
 from src.modules.channels.meta.models.meta_client import MetaClient
 from src.modules.channels.meta.repositories.meta_account_repository import MetaAccountRepository
