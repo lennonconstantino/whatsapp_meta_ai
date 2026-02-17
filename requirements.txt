@@ -4,5 +4,21 @@ uvicorn[standard]==0.32.0
 pydantic==2.9.0
 pydantic-settings
 
-requests==2.32.3
+# Database
+supabase==2.9.0
+pypika==0.48.9
+psycopg2-binary==2.9.9
+asyncpg==0.31.0
+
+# utils dependencies
 python-dotenv==1.0.1
+python-multipart==0.0.21
+python-ulid==3.1.0
+structlog==24.4.0
+colorama==0.4.6
+requests==2.32.3
+
+# Security
+pyjwt==2.9.0
+
+

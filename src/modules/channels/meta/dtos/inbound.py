@@ -1,8 +1,5 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
-
-from datetime import datetime
-from pydantic import BaseModel, Field
 from enum import Enum
 
 
@@ -81,9 +78,3 @@ class Payload(BaseModel):
     object: str
     entry: List[Entry]
 
-
-class UserMessage(BaseModel):
-    user: User
-    message: str | None = None
-    image: Image | None = None
-    audio: Audio | None = None
