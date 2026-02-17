@@ -1,6 +1,6 @@
 
 -- Create table
-CREATE TABLE meta_accounts (
+CREATE TABLE IF NOT EXISTS meta_accounts (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     meta_business_account_id VARCHAR(255) NOT NULL,
@@ -12,8 +12,7 @@ CREATE TABLE meta_accounts (
     -- Future implementation
     -- owner_id      TEXT NOT NULL REFERENCES owners(owner_id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes para melhor performance
@@ -23,7 +22,6 @@ CREATE INDEX idx_meta_accounts_business_account_id ON meta_accounts(meta_busines
 CREATE INDEX idx_meta_phone_numbers_gin ON meta_accounts USING gin(phone_numbers);
 
 
-COMMENT ON INDEX idx_meta_accounts_owner_id IS 'Índice para busca rápida por owner_id';
 COMMENT ON INDEX idx_meta_accounts_phone_number IS 'Índice para busca rápida por meta_phone_number';
 COMMENT ON INDEX idx_meta_accounts_business_account_id IS 'Índice para busca rápida por meta_business_account_id';
 COMMENT ON INDEX idx_meta_phone_numbers_gin IS 'Índice para busca rápida por meta_phone_numbers usando GIN';

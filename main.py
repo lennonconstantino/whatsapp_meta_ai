@@ -7,7 +7,7 @@ from typing import Annotated, Any, Dict
 from fastapi import Depends, FastAPI, HTTPException, Query
 
 from src.modules.channels.meta.dtos.inbound import Audio, Image, Message, Payload, RoleType, User
-from src.modules.channels.meta.services import meta_service
+from src.modules.channels.meta.services.meta_service import MetaService
 
 IS_DEV_ENVIRONMENT = True
 
@@ -22,6 +22,8 @@ app = FastAPI(
 
 log = logging.getLogger(__name__)
 
+meta_service = MetaService(meta_account_repo=None)
+
 
 def parse_message(payload: Payload) -> Message | None:
     if not payload.entry[0].changes[0].value.messages:
@@ -32,7 +34,10 @@ def parse_message(payload: Payload) -> Message | None:
 def get_current_user(message: Annotated[Message, Depends(parse_message)]) -> User | None:
     if not message:
         return None
-    return None # message_service.authenticate_user_by_phone_number(message.from_)
+    
+    # TODO: Authenticate user by phone number 
+    # -> meta_service.authenticate_user_by_phone_number(message.from_)
+    return User(id=1, phone="5511991490733", first_name="lennon", last_name="bahia", role=RoleType.BASIC)
 
 
 def parse_audio_file(message: Annotated[Message, Depends(parse_message)]) -> Audio | None:
@@ -131,24 +136,24 @@ def verify_whatsapp(
 
 
 @app.post("/webhook", status_code=200)
-def receive_whatsapp(
+async def receive_whatsapp(
         data: Dict[Any, Any],
         user: Annotated[User, Depends(get_current_user)],
         user_message: Annotated[str, Depends(message_extractor)],
         image: Annotated[Image, Depends(parse_image_file)],
+        message: Annotated[Message, Depends(parse_message)],
 ):
     payload = Payload(**data)
 
-    # user = User(id=1, phone="5511991490733", first_name="lennon", last_name="bahia", role=RoleType.BASIC)
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     if image:
-        return print("Image received")
+        print("Image received")
+        return {"status": "ok"}
 
     if user_message:
         print(f"Received message from user {user.first_name} {user.last_name} ({user.phone})")
-        meta_service.send_message("1", payload.entry[0].changes[0].value.from_, user.phone, user_message)
+        await meta_service.send_message("1", message.from_, user.phone, user_message)
 
     return {"status": "ok"}
-

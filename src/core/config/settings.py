@@ -68,6 +68,10 @@ class MetaSettings(BaseSettings):
         default=None, description="Meta Phone Number ID"
     )
     version_api: str | None = Field(default=None, description="Meta Version API")
+    phone_number: str | None = Field(default=None, description="Meta Phone Number (owner)")
+    business_account_id: str | None = Field(
+        default=None, description="Meta Business Account ID"
+    )
 
     model_config = SettingsConfigDict(
         env_prefix="META_",
