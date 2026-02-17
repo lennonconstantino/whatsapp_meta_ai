@@ -1,4 +1,6 @@
 import requests
+from src.core.config.settings import settings
+import time
 
 
 def build_payload() -> dict:
@@ -6,14 +8,14 @@ def build_payload() -> dict:
         "object": "whatsapp_business_account",
         "entry": [
             {
-                "id": "WHATSAPP_BUSINESS_ACCOUNT_ID",
+                "id": settings.meta.business_account_id, # WhatsApp Business Account ID
                 "changes": [
                     {
                         "value": {
                             "messaging_product": "whatsapp",
                             "metadata": {
                                 "display_phone_number": "5511991490733",
-                                "phone_number_id": "PHONE_NUMBER_ID",
+                                "phone_number_id": settings.meta.phone_number_id, # Phone Number ID
                             },
                             "contacts": [
                                 {
@@ -25,7 +27,7 @@ def build_payload() -> dict:
                                 {
                                     "from": "5511991490733",
                                     "id": "wamid.TEST_MESSAGE_ID",
-                                    "timestamp": "1737052800",
+                                    "timestamp": str(int(time.time())),
                                     "text": {"body": "Olá, isso é um teste de webhook"},
                                     "type": "text",
                                 }
