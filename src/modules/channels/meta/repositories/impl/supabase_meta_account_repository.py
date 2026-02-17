@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from src.core.database.interface import IDatabaseSession
 from src.core.database.supabase_async_repository import SupabaseAsyncRepository
-from src.core.utils import get_logger
+from src.core.utils.logging import get_logger
 from src.modules.channels.meta.models.meta_account import MetaAccount
 from src.modules.channels.meta.repositories.meta_account_repository import MetaAccountRepository
 
@@ -46,4 +46,3 @@ class SupabaseMetaAccountRepository(SupabaseAsyncRepository[MetaAccount], MetaAc
 
     async def delete_meta_account(self, account_id: str) -> bool:
         return await self.delete(account_id)
-

@@ -59,14 +59,32 @@ class MetaService:
             logger.error(f"Error creating Meta client for owner {owner_id}: {e}")
             return None
 
-    def __send_via_fake_sender(self, owner_id: str):
+    def __send_via_fake_sender(
+        self,
+        owner_id: str,
+        from_number: str,
+        to_number: str,
+        body: str,
+        media_url: Optional[str] = None,
+    ):
         """
         Send message via fake sender (development only).
 
         Args:
             owner_id: Owner ID (ULID)
+            from_number: Sender phone number
+            to_number: Recipient phone number
+            body: Message body
+            media_url: Optional media URL
         """
-        logger.info(f"Sending message via fake sender to owner {owner_id}")
+        logger.info(
+            "FAKE SENDER - WhatsApp message",
+            owner_id=owner_id,
+            from_number=from_number,
+            to_number=to_number,
+            body=body,
+            media_url=media_url,
+        )
 
     async def send_message(
         self,

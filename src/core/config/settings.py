@@ -34,6 +34,20 @@ class APISettings(BaseSettings):
     )
 
 
+class DatabaseSettings(BaseSettings):
+    """Database connection settings."""
+
+    backend: str = Field(default="supabase", description="Database backend (e.g. supabase)")
+
+    model_config = SettingsConfigDict(
+        env_prefix="DATABASE_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+
+
 class SupabaseSettings(BaseSettings):
     """Supabase connection settings."""
 
@@ -85,6 +99,7 @@ class Settings(BaseSettings):
     """Main application settings."""
     
     api: APISettings = Field(default_factory=APISettings)
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     supabase: SupabaseSettings = Field(default_factory=SupabaseSettings)
     meta: MetaSettings = Field(default_factory=MetaSettings)
 

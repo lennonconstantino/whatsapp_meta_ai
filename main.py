@@ -5,9 +5,10 @@ import logging
 import requests
 from typing import Annotated, Any, Dict
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.modules.channels.meta.dtos.inbound import Audio, Image, Message, Payload, RoleType, User
-from src.modules.channels.meta.services.meta_service import MetaService
+from src.core.di.container import Container
 
 IS_DEV_ENVIRONMENT = True
 
@@ -22,7 +23,18 @@ app = FastAPI(
 
 log = logging.getLogger(__name__)
 
-meta_service = MetaService(meta_account_repo=None)
+container = Container()
+setattr(app, "container", container)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+meta_service = container.meta.meta_service()
 
 
 def parse_message(payload: Payload) -> Message | None:

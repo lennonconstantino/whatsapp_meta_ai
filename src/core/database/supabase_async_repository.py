@@ -6,7 +6,7 @@ Provides CRUD operations using Supabase client, compatible with async/await.
 from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 from src.core.database.interface import IDatabaseSession
-from src.core.utils import get_logger
+from src.core.utils.logging import get_logger
 from src.core.utils.custom_ulid import is_valid_ulid
 
 logger = get_logger(__name__)
