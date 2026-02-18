@@ -14,7 +14,7 @@ def build_payload() -> dict:
                         "value": {
                             "messaging_product": "whatsapp",
                             "metadata": {
-                                "display_phone_number": "5511991490733",
+                                "display_phone_number": settings.meta.phone_number,
                                 "phone_number_id": settings.meta.phone_number_id, # Phone Number ID
                             },
                             "contacts": [

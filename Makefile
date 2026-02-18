@@ -7,13 +7,13 @@ help:
 
 run:
 	@echo "Starting application in background (logs -> app.log)..."
-	uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --debug >> app.log 2>&1 &
+	FORCE_COLOR=true python -m src.main >> app.log 2>&1 &
 	@echo "✅ Application is running."
-	@echo "-> see logs: tail -f app.log
+	@echo "-> see logs: tail -f app.log"
 
 stop:
 	@echo "Stopping application and workers..."
-	@-pkill -f "uvicorn src.main:app"
+	@-pkill -f "python -m src.main"
 	@echo "✅ Application and workers stopped."
 
 restart: stop run

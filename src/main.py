@@ -2,15 +2,39 @@
 
 import os
 import logging
+import uvicorn
+from dotenv import load_dotenv
+from fastapi.concurrency import asynccontextmanager
 import requests
 from typing import Annotated, Any, Dict
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from dependency_injector.wiring import Provide, inject
 
+
+from src.core.config.settings import settings
+from src.core.utils.logging import get_logger
 from src.modules.channels.meta.dtos.inbound import Audio, Image, Message, Payload, RoleType, User
 from src.core.di.container import Container
+from src.modules.channels.meta.services.meta_service import MetaService
+
+logger = get_logger(__name__)
 
 IS_DEV_ENVIRONMENT = True
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for startup and shutdown events.
+    """
+    # Startup
+    logger.info("Starting Owner API application")
+    logger.info(f"API running on {settings.api.host}:{settings.api.port}")
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down Owner API application")
 
 app = FastAPI(
     title="WhatsApp Bot",
@@ -25,6 +49,7 @@ log = logging.getLogger(__name__)
 
 container = Container()
 setattr(app, "container", container)
+container.wire(modules=[__name__])
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,8 +58,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-meta_service = container.meta.meta_service()
 
 
 def parse_message(payload: Payload) -> Message | None:
@@ -141,24 +164,33 @@ def verify_whatsapp(
         hub_challenge: int = Query(..., description="The challenge to verify the webhook", alias="hub.challenge"),
         hub_verify_token: str = Query(..., description="The verification token", alias="hub.verify_token"),
 ):
-    if hub_mode == "subscribe" and hub_verify_token == os.environ.get("VERIFICATION_TOKEN", "my_voice_is_my_password_verify_me"):
+    if hub_mode == "subscribe" and hub_verify_token == os.environ.get("META_VERIFICATION_TOKEN", "my_voice_is_my_password_verify_me"):
         return hub_challenge
 
     raise HTTPException(status_code=403, detail="Invalid verification token")
 
 
 @app.post("/webhook", status_code=200)
+@inject
 async def receive_whatsapp(
-        data: Dict[Any, Any],
+        payload: Payload,
         user: Annotated[User, Depends(get_current_user)],
         user_message: Annotated[str, Depends(message_extractor)],
         image: Annotated[Image, Depends(parse_image_file)],
         message: Annotated[Message, Depends(parse_message)],
+        meta_service: Annotated[MetaService, Depends(Provide[Container.meta.meta_service])],
 ):
-    payload = Payload(**data)
+    #payload = Payload(**data)
+    print("Received payload: " + payload.model_dump_json(indent=2))
 
-    if not user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not user or not message:
+        value = payload.entry[0].changes[0].value
+        if value.statuses:
+            status = value.statuses[0]
+            logger.info(f"Status update: {status.status} for message {status.id}")
+        else:
+            logger.info(f"Unknown webhook event: {value}")
+        return {"status": "ok"}
 
     if image:
         print("Image received")
@@ -169,3 +201,14 @@ async def receive_whatsapp(
         await meta_service.send_message("1", message.from_, user.phone, user_message)
 
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    load_dotenv()
+    import uvicorn
+
+    uvicorn.run(
+        "src.main:app",
+        host=settings.api.host,
+        port=settings.api.port,
+        reload=settings.api.debug,
+    )

@@ -30,6 +30,7 @@ def upsert_meta_account(
     meta_phone_number: str,
     system_user_access_token: Optional[str],
     webhook_verification_token: Optional[str],
+    owner_id: str,
     phone_numbers: Optional[List[str]] = None,
 ) -> None:
     cursor = conn.cursor()
@@ -50,6 +51,7 @@ def upsert_meta_account(
             """
             UPDATE meta_accounts
             SET
+                owner_id = %s,
                 phone_number_id = %s,
                 meta_phone_number = %s,
                 system_user_access_token = %s,
@@ -59,6 +61,7 @@ def upsert_meta_account(
             WHERE id = %s
             """,
             (
+                owner_id,
                 phone_number_id,
                 meta_phone_number,
                 system_user_access_token,
@@ -73,17 +76,19 @@ def upsert_meta_account(
             INSERT INTO meta_accounts (
                 name,
                 meta_business_account_id,
+                owner_id,
                 phone_number_id,
                 meta_phone_number,
                 system_user_access_token,
                 webhook_verification_token,
                 phone_numbers
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 name,
                 meta_business_account_id,
+                owner_id,
                 phone_number_id,
                 meta_phone_number,
                 system_user_access_token,
@@ -106,11 +111,12 @@ def main() -> None:
     phone_number_id = meta_settings.phone_number_id
     phone_number = meta_settings.phone_number
     business_account_id = meta_settings.business_account_id
+    owner_id = "01ARZ3NDEKTSV4RRFFQ69G5FAV"
 
-    if not all([bearer_token, verification_token, phone_number_id, phone_number, business_account_id]):
+    if not all([bearer_token, verification_token, phone_number_id, phone_number, business_account_id, owner_id]):
         print(
             "Erro: META_BEARER_TOKEN_ACCESS, META_VERIFICATION_TOKEN, META_PHONE_NUMBER_ID, "
-            "META_PHONE_NUMBER e META_BUSINESS_ACCOUNT_ID "
+            "META_PHONE_NUMBER, META_BUSINESS_ACCOUNT_ID e META_OWNER_ID "
             "precisam estar definidos no .env"
         )
         sys.exit(1)
@@ -145,6 +151,7 @@ def main() -> None:
             meta_phone_number=meta_phone_number,
             system_user_access_token=bearer_token,
             webhook_verification_token=verification_token,
+          owner_id=owner_id,
             phone_numbers=phone_numbers,
         )
         conn.commit()

@@ -11,6 +11,7 @@ END $$;
 DROP TABLE IF EXISTS public.meta_accounts CASCADE;
 
 -- Drop dos índices
+DROP INDEX IF EXISTS public.idx_meta_accounts_owner_id;
 DROP INDEX IF EXISTS public.idx_meta_accounts_phone_number;
 DROP INDEX IF EXISTS public.idx_meta_accounts_business_account_id;
 DROP INDEX IF EXISTS public.idx_meta_phone_numbers_gin;

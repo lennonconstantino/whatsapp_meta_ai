@@ -20,6 +20,10 @@ class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=[
             "src.modules.channels.meta.services.meta_service",
+            "src.modules.channels.meta.services.meta_account_service",
+            "src.modules.channels.meta.services.meta_webhook_service",
+            "src.modules.channels.meta.services.webhook.owner_resolver",
+            "src.main",
         ],
     )
     # Core Infrastructure

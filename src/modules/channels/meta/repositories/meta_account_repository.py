@@ -13,13 +13,21 @@ class MetaAccountRepository(ABC):
     async def get_by_id(self, account_id: str) -> Optional[MetaAccount]:
         ...
 
-    # Future Implementation
-    # @abstractmethod
-    # async def get_by_owner_id(self, owner_id: str) -> List[MetaAccount]:
-    #    ...
 
     @abstractmethod
-    async def get_by_whatsapp_phone_number(self, whatsapp_phone_number: str) -> Optional[MetaAccount]:
+    async def get_by_owner_id(self, owner_id: str) -> List[MetaAccount]:
+        ...
+
+    @abstractmethod
+    async def get_by_meta_business_account_id(self, business_account_id: str) -> Optional[MetaAccount]:
+        ...
+
+    @abstractmethod
+    async def get_by_meta_business_account_id(self, business_account_id: str) -> Optional[MetaAccount]:
+        ...
+
+    @abstractmethod
+    async def get_by_meta_phone_number(self, meta_phone_number: str) -> Optional[MetaAccount]:
         ...
 
     @abstractmethod

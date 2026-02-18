@@ -57,11 +57,19 @@ class Metadata(BaseModel):
     phone_number_id: str
 
 
+class StatusUpdate(BaseModel):
+    id: str
+    status: str  # "sent", "delivered", "read", "failed"
+    timestamp: str
+    recipient_id: str
+    
+
 class Value(BaseModel):
     messaging_product: str
     metadata: Metadata
     contacts: Optional[List[Contact]] = None
     messages: Optional[List[Message]] = None
+    statuses: list[StatusUpdate] | None = None  # ← adicione isso
 
 class Change(BaseModel):
     value: Value

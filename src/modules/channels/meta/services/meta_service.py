@@ -2,6 +2,8 @@
 import datetime
 from typing import Any, Dict, Optional
 
+import httpx
+
 from src.core.config.settings import settings
 from src.core.utils.logging import get_logger
 from src.modules.channels.meta.models.meta_client import MetaClient
@@ -86,43 +88,116 @@ class MetaService:
             media_url=media_url,
         )
 
-    async def send_message(
-        self,
-        owner_id: str,
-        from_number: str,
-        to_number: str,
-        body: str,
-        media_url: Optional[str] = None
-    ) -> Any:
-        """
-        Send a message via Meta.
+    def _build_post_request(self):
+        VERSION_API = settings.meta.version_api
+        PHONE_NUMBER_ID = settings.meta.phone_number_id
+        BEARER_TOKEN_ACCESS = settings.meta.bearer_token_access
+        url = f"https://graph.facebook.com/{VERSION_API}/{PHONE_NUMBER_ID}/messages"
+        headers = {
+            "Authorization": "Bearer " + BEARER_TOKEN_ACCESS,
+            "Content-Type": "application/json"
+        }
 
-        Args:
-            owner_id: Owner ID (ULID)
-            from_number: Sender phone number
-            to_number: Recipient phone number
-            body: Message body
-            media_url: Optional media URL to send with message
+        return url, headers
 
-        Returns:
-            True if message sent successfully
-        """
+    async def download_file_from_facebook(self, file_id: str, file_type: str, mime_type: str) -> str | None:
+        # First GET request to retrieve the download URL
+        url = f"https://graph.facebook.com/{settings.meta.version_api}/{file_id}"
+        headers = {"Authorization": f"Bearer {settings.meta.bearer_token_access}"}
+
+        with httpx.Client() as client:
+            response = client.get(url, headers=headers)
+
+            if response.status_code == 200:
+                download_url = response.json().get("url")
+
+                # Second GET request to download the file
+                response = client.get(download_url, headers=headers)
+
+                if response.status_code == 200:
+                    file_extension = mime_type.split("/")[-1].split(";")[0]
+                    file_path = f"{file_id}.{file_extension}"
+                    with open(file_path, "wb") as file:
+                        file.write(response.content)
+                    if file_type == "image" or file_type == "audio":
+                        return file_path
+
+                raise ValueError(f"Failed to download file. Status code: {response.status_code}")
+        raise ValueError(f"Failed to retrieve download URL. Status code: {response.status_code}")
+
+    async def send_template(
+            self, 
+            owner_id: str,
+            from_number: str,
+            to_number: str,
+            message: str,
+            media_url: Optional[str] = None) -> Any:
+
         # Only send via fake sender in development environment
         if settings.api.environment == "development" and settings.api.use_fake_sender:
             logger.warning("Message sent via fake sender")
             return self.__send_via_fake_sender(
-                owner_id, from_number, to_number, body, media_url
+                owner_id, from_number, to_number, message, media_url
             )
 
-        # meta_client = await self._get_client(owner_id)
-        # if not meta_client:
-        #     logger.error(f"Meta client not found for owner {owner_id}")
-        #     return None
+        url, headers = self._build_post_request()
 
-        try:
-            # TODO: Implement actual message sending logic
-            logger.info(f"Sending message via Meta to owner {owner_id}: {body}")
+        logger.info(f"Meta API request: {url} {headers} - "
+                    f"Owner ID: {owner_id} To: {to_number} Message: {message}")
+        
+        data = {
+            "messaging_product": "whatsapp",
+            "to": to_number,
+            "type": "template",
+            "template": {
+                "name": "hello_world",
+                "language": {
+                    "code": "en_US"
+                }
+            }
+        }
 
-        except Exception as e:
-            logger.error(f"Error sending message via Meta to owner {owner_id}: {e}")
-            return None
+        with httpx.Client() as client:
+            response = client.post(url, headers=headers, json=data)
+            logger.info(f"Meta API response: {response.status_code} {response.text}")
+            
+        return response.json()
+
+
+    async def send_message(
+            self, 
+            owner_id: str,
+            from_number: str,
+            to_number: str,
+            message: str,
+            media_url: Optional[str] = None) -> Any:
+        
+        # Only send via fake sender in development environment
+        if settings.api.environment == "development" and settings.api.use_fake_sender:
+            logger.warning("Message sent via fake sender")
+            return self.__send_via_fake_sender(
+                owner_id, from_number, to_number, message, media_url
+            )
+        
+        url, headers = self._build_post_request()
+
+        logger.info(f"Meta API request: {url} {headers} "
+                    f"Owner ID: {owner_id} To: {to_number} Message: {message}")
+
+        data = {
+            "messaging_product": "whatsapp",
+            "preview_url": False,
+            "recipient_type": "individual",
+            "to": to_number,
+            "type": "text",
+            "text": {
+                "body": message
+            }
+        }
+
+        with httpx.Client() as client:
+            response = client.post(url, headers=headers, json=data)
+            logger.info(f"Meta API response: {response.status_code} {response.text}")
+
+        return response.json()
+

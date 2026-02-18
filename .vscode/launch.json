@@ -13,6 +13,14 @@
             "args": "${command:pickArgs}"
         },
         {
+            "name": "Python: Main Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.main",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },        
+        {
             "name": "API - uvicorn main:app",
             "type": "debugpy",
             "request": "launch",

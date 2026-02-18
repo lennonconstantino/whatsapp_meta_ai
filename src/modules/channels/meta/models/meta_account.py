@@ -26,10 +26,9 @@ class MetaAccount(BaseModel):
     phone_numbers: Annotated[List[str], BeforeValidator(parse_phone_numbers)] = Field(default_factory=list)
     system_user_access_token: str = Field(..., max_length=500, description="access token using bearer")
     webhook_verification_token: str = Field(..., max_length=500, description="webhook verification token to receive events")
-    # Future implementation
-    # owner_id: str = Field(..., description="owner id")
+    owner_id: str = Field(..., description="owner id")
     
     model_config = ConfigDict(from_attributes=True)
 
     def __repr__(self) -> str:
-        return f"MetaAccount(id={self.id}, meta_business_account_id={self.meta_business_account_id}, phone_number_id={self.phone_number_id}, phone_number={self.phone_number}, system_user_access_token={self.system_user_access_token}, webhook_verification_token={self.webhook_verification_token})"
+        return f"MetaAccount(id={self.id}, meta_business_account_id={self.meta_business_account_id}, phone_number_id={self.phone_number_id}, phone_number={self.phone_number}, system_user_access_token={self.system_user_access_token}, webhook_verification_token={self.webhook_verification_token}, owner_id={self.owner_id})"
