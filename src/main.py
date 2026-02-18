@@ -1,12 +1,11 @@
 
 
 import os
-import logging
 import uvicorn
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
 import requests
-from typing import Annotated, Any, Dict
+from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dependency_injector.wiring import Provide, inject
@@ -20,7 +19,7 @@ from src.modules.channels.meta.services.meta_service import MetaService
 
 logger = get_logger(__name__)
 
-IS_DEV_ENVIRONMENT = True
+IS_DEV_ENVIRONMENT = settings.api.environment == "development" or settings.api.debug
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,14 +37,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="WhatsApp Bot",
+    description="Meta Oficial integration - Whatsapp bot",
     version="0.1.0",
+    lifespan=lifespan,
     openapi_url=f"/openapi.json" if IS_DEV_ENVIRONMENT else None,
     docs_url=f"/docs" if IS_DEV_ENVIRONMENT else None,
     redoc_url=f"/redoc" if IS_DEV_ENVIRONMENT else None,
     swagger_ui_oauth2_redirect_url=f"/docs/oauth2-redirect" if IS_DEV_ENVIRONMENT else None,
 )
-
-log = logging.getLogger(__name__)
 
 container = Container()
 setattr(app, "container", container)
@@ -164,7 +163,10 @@ def verify_whatsapp(
         hub_challenge: int = Query(..., description="The challenge to verify the webhook", alias="hub.challenge"),
         hub_verify_token: str = Query(..., description="The verification token", alias="hub.verify_token"),
 ):
-    if hub_mode == "subscribe" and hub_verify_token == os.environ.get("META_VERIFICATION_TOKEN", "my_voice_is_my_password_verify_me"):
+    expected_token = settings.meta.verification_token or os.environ.get(
+        "META_VERIFICATION_TOKEN", "my_voice_is_my_password_verify_me"
+    )
+    if hub_mode == "subscribe" and hub_verify_token == expected_token:
         return hub_challenge
 
     raise HTTPException(status_code=403, detail="Invalid verification token")
@@ -180,8 +182,8 @@ async def receive_whatsapp(
         message: Annotated[Message, Depends(parse_message)],
         meta_service: Annotated[MetaService, Depends(Provide[Container.meta.meta_service])],
 ):
-    #payload = Payload(**data)
-    print("Received payload: " + payload.model_dump_json(indent=2))
+
+    logger.info("Received payload", payload=payload.model_dump())
 
     if not user or not message:
         value = payload.entry[0].changes[0].value
@@ -193,19 +195,22 @@ async def receive_whatsapp(
         return {"status": "ok"}
 
     if image:
-        print("Image received")
+        logger.info("Image message received", user_id=user.id, phone=user.phone)
         return {"status": "ok"}
 
     if user_message:
-        print(f"Received message from user {user.first_name} {user.last_name} ({user.phone})")
+        logger.info(
+            "Text message received",
+            user_id=user.id,
+            phone=user.phone,
+            message=user_message,
+        )
         await meta_service.send_message("1", message.from_, user.phone, user_message)
 
     return {"status": "ok"}
 
 if __name__ == "__main__":
     load_dotenv()
-    import uvicorn
-
     uvicorn.run(
         "src.main:app",
         host=settings.api.host,
