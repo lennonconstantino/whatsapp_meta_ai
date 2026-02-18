@@ -29,9 +29,12 @@ def build_payload() -> dict:
                                     "id": "wamid.TEST_MESSAGE_ID",
                                     "timestamp": str(int(time.time())),
                                     "text": {"body": "Olá, isso é um teste de webhook"},
+                                    "image": None,
+                                    "audio": None,
                                     "type": "text",
                                 }
                             ],
+                            "statuses": None,
                         },
                         "field": "messages",
                         "statuses": [],
@@ -45,11 +48,7 @@ def build_payload() -> dict:
 def main() -> None:
     url = "http://localhost:8000/webhook"
     payload = build_payload()
-    body = {
-        "payload": payload,
-        "data": payload,
-    }
-    response = requests.post(url, json=body)
+    response = requests.post(url, json=build_payload())
     print("Status:", response.status_code)
     print("Response:", response.text)
 
