@@ -36,26 +36,25 @@ class MetaWebhookService:
                 return None
 
             display_phone_number = value.metadata.display_phone_number
-            from_number = value.contacts[0].wa_id
+            user_phone_number = value.contacts[0].wa_id
 
             text = await self._extract_text_from_message(
                 value,
                 owner_id,
-                from_number,
+                user_phone_number,
                 display_phone_number,
             )
 
             if text:
                 await self.meta_service.send_message(
                     owner_id=owner_id,
-                    from_number=from_number,
-                    to_number=display_phone_number,
+                    from_number=display_phone_number,  # bot number
+                    to_number=user_phone_number,       # user number
                     message=text,
-                    media_type=value.messages[0].type,
                 )
                 logger.info(
-                    f"Inbound message handled: reply sent from {from_number} to "
-                    f"{display_phone_number} for owner {owner_id}"
+                    f"Inbound message handled: reply sent from {display_phone_number} to "
+                    f"{user_phone_number} for owner {owner_id}"
                 )
 
         except Exception as e:
