@@ -151,7 +151,7 @@ def main() -> None:
             phone_number=phone_number,
             system_user_access_token=bearer_token,
             webhook_verification_token=verification_token,
-          owner_id=owner_id,
+            owner_id=owner_id,
             phone_numbers=phone_numbers,
         )
         conn.commit()

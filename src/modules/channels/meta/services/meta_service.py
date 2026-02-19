@@ -67,7 +67,7 @@ class MetaService:
         from_number: str,
         to_number: str,
         body: str,
-        media_url: Optional[str] = None,
+        media_type: Optional[str] = None,
     ):
         """
         Send message via fake sender (development only).
@@ -77,7 +77,7 @@ class MetaService:
             from_number: Sender phone number
             to_number: Recipient phone number
             body: Message body
-            media_url: Optional media URL
+            media_type: Optional media type (image, audio, video)
         """
         logger.info(
             "FAKE SENDER - WhatsApp message",
@@ -85,7 +85,7 @@ class MetaService:
             from_number=from_number,
             to_number=to_number,
             body=body,
-            media_url=media_url,
+            media_type=media_type,
         )
 
     def _build_post_request(self):
@@ -185,13 +185,13 @@ class MetaService:
             from_number: str,
             to_number: str,
             message: str,
-            media_url: Optional[str] = None) -> Any:
+            media_type: Optional[str] = None) -> Any:
         
         # Only send via fake sender in development environment
         if settings.api.environment == "development" and settings.api.use_fake_sender:
             logger.warning("Message sent via fake sender")
             return self.__send_via_fake_sender(
-                owner_id, from_number, to_number, message, media_url
+                owner_id, from_number, to_number, message, media_type
             )
         
         url, headers = self._build_post_request()
