@@ -2,18 +2,9 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-
-class RoleType(str, Enum):
-    ADMIN: str = "admin"
-    BASIC: str = "basic"
-
-
 class User(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
+    profile_name: str
     phone: str
-    role: RoleType = RoleType.BASIC
 
 
 class Profile(BaseModel):
@@ -33,23 +24,39 @@ class Image(BaseModel):
     mime_type: str
     sha256: str
     id: str
+    caption: str | None = None
 
 
 class Audio(BaseModel):
+    mime_type: str # ex: "audio/ogg; codecs=opus"
+    sha256: str
+    id: str
+    voice: bool | None = None  # True if recorded in WhatsApp
+
+
+class Video(BaseModel):
     mime_type: str
     sha256: str
     id: str
-    voice: bool
+    caption: str | None = None
+
+
+class Reaction(BaseModel):
+    message_id: str
+    emoji: str  # ex: "❤️"
 
 
 class Message(BaseModel):
     from_: str = Field(..., alias="from")
     id: str
     timestamp: str
-    text: Optional[Text] = None
-    image: Optional[Image] = None
-    audio: Optional[Audio] = None
     type: str
+    reaction: Optional[Reaction] | None = None
+    text: Optional[Text] | None = None
+    image: Optional[Image] | None = None
+    audio: Optional[Audio] | None = None
+    video: Optional[Video] | None = None
+    
 
 
 class Metadata(BaseModel):

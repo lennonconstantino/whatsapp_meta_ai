@@ -100,30 +100,45 @@ class MetaService:
 
         return url, headers
 
-    async def download_file_from_facebook(self, file_id: str, file_type: str, mime_type: str) -> str | None:
-        # First GET request to retrieve the download URL
+
+    async def download_media(self, file_id: str, file_type: str, mime_type: str) -> bytes | None:
         url = f"https://graph.facebook.com/{settings.meta.version_api}/{file_id}"
         headers = {"Authorization": f"Bearer {settings.meta.bearer_token_access}"}
 
-        with httpx.Client() as client:
-            response = client.get(url, headers=headers)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            if response.status_code != 200:
+                raise ValueError(f"Failed to retrieve download URL. Status code: {response.status_code}")
 
-            if response.status_code == 200:
-                download_url = response.json().get("url")
+            download_url = response.json().get("url")
 
-                # Second GET request to download the file
-                response = client.get(download_url, headers=headers)
-
-                if response.status_code == 200:
-                    file_extension = mime_type.split("/")[-1].split(";")[0]
-                    file_path = f"{file_id}.{file_extension}"
-                    with open(file_path, "wb") as file:
-                        file.write(response.content)
-                    if file_type == "image" or file_type == "audio":
-                        return file_path
-
+            response = await client.get(download_url, headers=headers)
+            if response.status_code != 200:
                 raise ValueError(f"Failed to download file. Status code: {response.status_code}")
-        raise ValueError(f"Failed to retrieve download URL. Status code: {response.status_code}")
+
+            # suporta image, audio e video
+            if file_type in ("image", "audio", "video"):
+                return response.content
+
+        return None
+
+    async def save_media(
+        self,
+        content: bytes,
+        file_type: str,
+        file_id: str,
+        mime_type: str,
+    ) -> str | None:
+        file_extension = mime_type.split("/")[-1].split(";")[0]
+        file_path = f"{file_id}.{file_extension}"
+
+        with open(file_path, "wb") as file:
+            file.write(content)
+
+        if file_type in ("image", "audio", "video"):
+            return file_path
+
+        return None
 
     async def send_template(
             self, 
@@ -200,4 +215,3 @@ class MetaService:
             logger.info(f"Meta API response: {response.status_code} {response.text}")
 
         return response.json()
-

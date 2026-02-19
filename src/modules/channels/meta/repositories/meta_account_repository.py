@@ -27,7 +27,7 @@ class MetaAccountRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_by_meta_phone_number(self, meta_phone_number: str) -> Optional[MetaAccount]:
+    async def get_by_phone_number(self, phone_number: str) -> Optional[MetaAccount]:
         ...
 
     @abstractmethod

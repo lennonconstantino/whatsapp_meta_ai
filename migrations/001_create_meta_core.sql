@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS meta_accounts (
     name VARCHAR(255) NOT NULL,
     meta_business_account_id VARCHAR(255) NOT NULL,
     phone_number_id VARCHAR(255) NOT NULL,
-    meta_phone_number VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(50) NOT NULL,
     system_user_access_token VARCHAR(500) NOT NULL,
     webhook_verification_token VARCHAR(500) NOT NULL,
     phone_numbers JSONB DEFAULT '[]'::jsonb,
@@ -17,14 +17,14 @@ CREATE TABLE IF NOT EXISTS meta_accounts (
 
 -- Indexes para melhor performance
 CREATE INDEX idx_meta_accounts_owner_id ON meta_accounts(owner_id);
-CREATE INDEX idx_meta_accounts_phone_number ON meta_accounts(meta_phone_number);
+CREATE INDEX idx_meta_accounts_phone_number ON meta_accounts(phone_number);
 CREATE INDEX idx_meta_accounts_business_account_id ON meta_accounts(meta_business_account_id);
 CREATE INDEX idx_meta_phone_numbers_gin ON meta_accounts USING gin(phone_numbers);
 
 
-COMMENT ON INDEX idx_meta_accounts_phone_number IS 'Índice para busca rápida por meta_phone_number';
+COMMENT ON INDEX idx_meta_accounts_phone_number IS 'Índice para busca rápida por phone_number';
 COMMENT ON INDEX idx_meta_accounts_business_account_id IS 'Índice para busca rápida por meta_business_account_id';
-COMMENT ON INDEX idx_meta_phone_numbers_gin IS 'Índice para busca rápida por meta_phone_numbers usando GIN';
+COMMENT ON INDEX idx_meta_phone_numbers_gin IS 'Índice para busca rápida por phone_numbers usando GIN';
 
 
 -- Trigger para atualizar updated_at automaticamente

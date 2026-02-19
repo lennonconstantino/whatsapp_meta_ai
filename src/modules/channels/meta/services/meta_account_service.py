@@ -38,7 +38,7 @@ class MetaAccountService:
 
         # 2. Try by Phone Number
         if phone_number:
-            account = await self.repo.get_by_meta_phone_number(phone_number)
+            account = await self.repo.get_by_phone_number(phone_number)
 
         # 3. Fallback to default from settings (Development only ideally)
         if not account and getattr(settings.api, "environment", "production") == "development":

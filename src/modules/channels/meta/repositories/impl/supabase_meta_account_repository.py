@@ -41,8 +41,8 @@ class SupabaseMetaAccountRepository(SupabaseAsyncRepository[MetaAccount], MetaAc
         return results[0] if results else None
 
 
-    async def get_by_meta_phone_number(self, meta_phone_number: str) -> Optional[MetaAccount]:
-        results = await self.find_by({"meta_phone_number": meta_phone_number}, limit=1)
+    async def get_by_phone_number(self, phone_number: str) -> Optional[MetaAccount]:
+        results = await self.find_by({"phone_number": phone_number}, limit=1)
         return results[0] if results else None
 
 

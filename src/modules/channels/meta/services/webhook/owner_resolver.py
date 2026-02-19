@@ -1,7 +1,7 @@
-from typing import Any, Dict
 
 from fastapi import HTTPException
 
+from src.modules.channels.meta.dtos.inbound import Payload
 from src.modules.channels.meta.services.meta_account_service import MetaAccountService
 from src.core.utils.logging import get_logger
 
@@ -14,7 +14,7 @@ class MetaWebhookOwnerResolver:
         self.meta_account_service = meta_account_service
         
 
-    async def resolve_owner_id(self, payload: Dict[str, Any]) -> str:
+    async def resolve_owner_id(self, payload: Payload) -> str:
         """Resolve owner ID from webhook payload.
 
         Args:
@@ -26,11 +26,12 @@ class MetaWebhookOwnerResolver:
         # TODO: Implement actual owner ID resolution logic
         # For now, return a placeholder owner ID
 
-        #owner_id = payload["entry"][0]["id"] # WhatsApp Business Account ID
+        entry = payload.entry[0]
+        change = entry.changes[0]
+        value = change.value
 
-        business_account_id = payload["entry"][0]["id"] # WhatsApp Business Account ID
-        display_phone_number = payload["entry"][0]["changes"][0]["value"]["metadata"]["display_phone_number"]
-        # phone_number_id = payload["entry"][0]["changes"][0]["value"]["metadata"]["phone_number_id"]
+        business_account_id = entry.id
+        display_phone_number = value.metadata.display_phone_number
 
         account = await self.meta_account_service.resolve_account(
             phone_number=display_phone_number,

@@ -27,7 +27,7 @@ def upsert_meta_account(
     name: str,
     meta_business_account_id: str,
     phone_number_id: str,
-    meta_phone_number: str,
+    phone_number: str,
     system_user_access_token: Optional[str],
     webhook_verification_token: Optional[str],
     owner_id: str,
@@ -53,7 +53,7 @@ def upsert_meta_account(
             SET
                 owner_id = %s,
                 phone_number_id = %s,
-                meta_phone_number = %s,
+                phone_number = %s,
                 system_user_access_token = %s,
                 webhook_verification_token = %s,
                 phone_numbers = %s,
@@ -63,7 +63,7 @@ def upsert_meta_account(
             (
                 owner_id,
                 phone_number_id,
-                meta_phone_number,
+                phone_number,
                 system_user_access_token,
                 webhook_verification_token,
                 json.dumps(phone_numbers or []),
@@ -78,7 +78,7 @@ def upsert_meta_account(
                 meta_business_account_id,
                 owner_id,
                 phone_number_id,
-                meta_phone_number,
+                phone_number,
                 system_user_access_token,
                 webhook_verification_token,
                 phone_numbers
@@ -90,7 +90,7 @@ def upsert_meta_account(
                 meta_business_account_id,
                 owner_id,
                 phone_number_id,
-                meta_phone_number,
+            phone_number,
                 system_user_access_token,
                 webhook_verification_token,
                 json.dumps(phone_numbers or []),
@@ -124,7 +124,7 @@ def main() -> None:
     # Campos auxiliares
     name = "Default Meta Account"
     meta_business_account_id = business_account_id
-    meta_phone_number = phone_number
+    phone_number = phone_number
 
     # Define lista de phone_numbers incluindo o número principal e o adicional solicitado
     phone_numbers: List[str] = []
@@ -148,7 +148,7 @@ def main() -> None:
             name=name,
             meta_business_account_id=meta_business_account_id,
             phone_number_id=phone_number_id,
-            meta_phone_number=meta_phone_number,
+            phone_number=phone_number,
             system_user_access_token=bearer_token,
             webhook_verification_token=verification_token,
           owner_id=owner_id,

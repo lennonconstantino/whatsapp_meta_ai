@@ -2,24 +2,28 @@
 
 import os
 import uvicorn
+import requests
+
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
-import requests
 from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dependency_injector.wiring import Provide, inject
 
 
+from src.modules.channels.meta.dtos.inbound import Payload
+from src.modules.channels.meta.services.meta_webhook_service import MetaWebhookService
 from src.core.config.settings import settings
 from src.core.utils.logging import get_logger
-from src.modules.channels.meta.dtos.inbound import Audio, Image, Message, Payload, RoleType, User
 from src.core.di.container import Container
-from src.modules.channels.meta.services.meta_service import MetaService
+
 
 logger = get_logger(__name__)
 
+
 IS_DEV_ENVIRONMENT = settings.api.environment == "development" or settings.api.debug
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,44 +63,6 @@ app.add_middleware(
 )
 
 
-def parse_message(payload: Payload) -> Message | None:
-    if not payload.entry[0].changes[0].value.messages:
-        return None
-    return payload.entry[0].changes[0].value.messages[0]
-
-
-def get_current_user(message: Annotated[Message, Depends(parse_message)]) -> User | None:
-    if not message:
-        return None
-    
-    # TODO: Authenticate user by phone number 
-    # -> meta_service.authenticate_user_by_phone_number(message.from_)
-    return User(id=1, phone="5511991490733", first_name="lennon", last_name="bahia", role=RoleType.BASIC)
-
-
-def parse_audio_file(message: Annotated[Message, Depends(parse_message)]) -> Audio | None:
-    if message and message.type == "audio":
-        return message.audio
-    return None
-
-
-def parse_image_file(message: Annotated[Message, Depends(parse_message)]) -> Image | None:
-    if message and message.type == "image":
-        return message.image
-    return None
-
-
-def message_extractor(
-        message: Annotated[Message, Depends(parse_message)],
-        audio: Annotated[Audio, Depends(parse_audio_file)],
-):
-    if audio:
-        return "" # message_service.transcribe_audio(audio)
-    if message and message.text:
-        return message.text.body
-    return None
-
-
 @app.get("/health")
 def health():
     return {"status": "healthy"}
@@ -106,13 +72,14 @@ def health():
 def readiness():
     return {"status": "ready"}
 
+
 @app.get("/keep-alive-webhook")
 def keep_alive_webhook():
     public_url = os.environ.get("PUBLIC_URL") or os.environ.get("NGROK_PUBLIC_URL")
     checks = {"webhook_get": None, "ngrok_local": None}
     if public_url:
         try:
-            token = os.environ.get("VERIFICATION_TOKEN", "my_voice_is_my_password_verify_me")
+            token = os.environ.get("META_VERIFICATION_TOKEN", "my_voice_is_my_password_verify_me")
             challenge = 123456
             r_get = requests.get(
                 public_url.rstrip("/") + "/webhook",
@@ -174,38 +141,14 @@ def verify_whatsapp(
 
 @app.post("/webhook", status_code=200)
 @inject
-async def receive_whatsapp(
+async def inbound(
         payload: Payload,
-        user: Annotated[User, Depends(get_current_user)],
-        user_message: Annotated[str, Depends(message_extractor)],
-        image: Annotated[Image, Depends(parse_image_file)],
-        message: Annotated[Message, Depends(parse_message)],
-        meta_service: Annotated[MetaService, Depends(Provide[Container.meta.meta_service])],
+        meta_webhook_service: Annotated[MetaWebhookService, Depends(Provide[Container.meta.meta_webhook_service])],
 ):
-
     logger.info("Received payload", payload=payload.model_dump())
+    print("Received payload: " + payload.model_dump_json(indent=2))
 
-    if not user or not message:
-        value = payload.entry[0].changes[0].value
-        if value.statuses:
-            status = value.statuses[0]
-            logger.info(f"Status update: {status.status} for message {status.id}")
-        else:
-            logger.info(f"Unknown webhook event: {value}")
-        return {"status": "ok"}
-
-    if image:
-        logger.info("Image message received", user_id=user.id, phone=user.phone)
-        return {"status": "ok"}
-
-    if user_message:
-        logger.info(
-            "Text message received",
-            user_id=user.id,
-            phone=user.phone,
-            message=user_message,
-        )
-        await meta_service.send_message("1", message.from_, user.phone, user_message)
+    await meta_webhook_service.handle_webhook(payload)
 
     return {"status": "ok"}
 
