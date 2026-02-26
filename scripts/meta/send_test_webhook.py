@@ -48,7 +48,7 @@ def build_payload() -> dict:
 def main() -> None:
     url = "http://localhost:8000/webhook"
     payload = build_payload()
-    response = requests.post(url, json=build_payload())
+    response = requests.post(url, json=payload)
     print("Status:", response.status_code)
     print("Response:", response.text)
 
